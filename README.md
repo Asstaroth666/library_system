@@ -72,5 +72,3 @@ library_system/
 * SQLAlchemy
 
 ---
-
-Хочешь, чтобы я сгенерировал `requirements.txt` автоматически на основе твоих импортов?
