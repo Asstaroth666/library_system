@@ -1,33 +1,20 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .models import Base  # импортируем Base, который содержит все модели
 
-# Создание объекта Base, от которого будут наследоваться все модели
-Base = declarative_base()
+# Создаем подключение к базе данных
+DATABASE_URL = "postgresql://postgres:1234@localhost/library"  # Убедись, что здесь правильный URL подключения
 
-class Book(Base):
-    __tablename__ = "books"
-    id = Column(Integer, primary_key=True)
-    title = Column(String)
-    author = Column(String)
-    isbn = Column(String)
-    status = Column(String)
-    available_copies = Column(Integer)
+# Создание движка базы данных (engine)
+engine = create_engine(DATABASE_URL)
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    email = Column(String)
-    role = Column(String)
+# Создание фабрики сессий
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-class Borrow(Base):
-    __tablename__ = "borrows"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    book_id = Column(Integer, ForeignKey("books.id"))
-    borrow_date = Column(Date)
-    return_date = Column(Date)
-
-    user = relationship("User")
-    book = relationship("Book")
+# Функция для получения сессии
+def get_db():
+    db = SessionLocal()  # Создаем сессию
+    try:
+        yield db  # Возвращаем сессию
+    finally:
+        db.close()  # Закрываем сессию после использования
