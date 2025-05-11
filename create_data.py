@@ -6,8 +6,8 @@ session = SessionLocal()
 
 # Создание книги
 new_book = Book(
-    title="Amil",
-    author="Dota 2 Put' Do Titana",
+    title="АВЫФ",
+    author="Chinazes",
     isbn="1234567890",
     status="Available",
     available_copies=5
