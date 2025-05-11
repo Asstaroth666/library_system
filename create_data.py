@@ -1,26 +1,21 @@
-from server.database import SessionLocal, get_db
-
+from server.database import SessionLocal
 from server.models import Book
 
-def create_book(title, author, isbn, status, available_copies):
-    # Получаем сессию
-    db = next(get_db())
+# Создание сессии для работы с базой данных
+session = SessionLocal()
 
-    # Создаем объект книги
-    new_book = Book(
-        title=title,
-        author=author,
-        isbn=isbn,
-        status=status,
-        available_copies=available_copies
-    )
+# Создание книги
+new_book = Book(
+    title="Amil",
+    author="Dota 2 Put' Do Titana",
+    isbn="1234567890",
+    status="Available",
+    available_copies=5
+)
 
-    # Добавляем книгу в сессию
-    db.add(new_book)
-    db.commit()  # Сохраняем изменения
-    db.refresh(new_book)  # Обновляем объект, чтобы получить его id
-    return new_book
+# Добавление книги в сессию
+session.add(new_book)
+session.commit()
 
-# Пример использования
-book = create_book("The Great Gatsby", "F. Scott Fitzgerald", "9780743273565", "available", 5)
-print(f"Book created: {book.title}, ID: {book.id}")
+# Закрытие сессии
+session.close()
