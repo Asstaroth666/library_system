@@ -2,8 +2,22 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-# Создание объекта Base, от которого будут наследоваться все модели
 Base = declarative_base()
+
+# Исправляем модель User (убираем дублирование)
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
+
+    def __init__(self, username, email, password):
+        self.username = username
+        self.email = email
+        self.password = password
+
 
 class Book(Base):
     __tablename__ = "books"
@@ -16,14 +30,6 @@ class Book(Base):
     status = Column(String)
     available_copies = Column(Integer)
 
-class User(Base):
-    __tablename__ = "users"
-    __table_args__ = {'extend_existing': True}  # Добавляем параметр extend_existing
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    email = Column(String)
-    role = Column(String)
 
 class Borrow(Base):
     __tablename__ = "borrows"
