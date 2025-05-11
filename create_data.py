@@ -9,10 +9,10 @@ def create_book():
     status = input("Введите статус книги (например, 'Available'): ")
     available_copies = int(input("Введите количество доступных копий: "))
 
-    # Создание сессии для работы с базой данных
+
     session = SessionLocal()
 
-    # Создание книги с введенными данными
+
     new_book = Book(
         title=title,
         author=author,

@@ -1,36 +1,53 @@
 from datetime import date
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from server.models import Base, Borrow
-from server.database import engine
+from sqlalchemy.orm import Session
+from server.database import SessionLocal
+from server.models import User, Book, Borrow
+import sys
+import os
 
-# Настроим сессию SQLAlchemy
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Добавляем корневую папку проекта в sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-# Функция для тестирования записи в базу данных
-def create_borrow(db, user_id: int, book_id: int, borrow_date: date, return_date: date):
-    new_borrow = Borrow(user_id=user_id, book_id=book_id, borrow_date=borrow_date, return_date=return_date)
-    db.add(new_borrow)
+def create_borrow(db: Session, user_id: int, book_id: int, borrow_date: date, return_date: date):
+    borrow = Borrow(
+        user_id=user_id,
+        book_id=book_id,
+        borrow_date=borrow_date,
+        return_date=return_date
+    )
+    db.add(borrow)
     db.commit()
-    db.refresh(new_borrow)
-    return new_borrow
+    db.refresh(borrow)
+    return borrow
 
 def test_create_borrow():
-    db = SessionLocal()  # Создаем сессию для работы с БД
+    db = SessionLocal()
 
-    # Тестовые данные
-    user_id = 1  # Здесь будет id пользователя, который берет книгу
-    book_id = 1  # Здесь будет id книги, которую берет пользователь
-    borrow_date = date.today()  # Текущая дата
-    return_date = date.today()  # Например, та же дата для возврата
+    try:
+        # 1. Добавляем тестового пользователя
+        test_user = User(username="Test User", email="testuser@example.com", password="password")
+        db.add(test_user)
+        db.commit()  # Сохраняем пользователя в базе данных
 
-    # Вызываем функцию для создания записи
-    borrow = create_borrow(db, user_id, book_id, borrow_date, return_date)
+        # 2. Добавляем тестовую книгу
+        test_book = Book(title="Test Book", author="Author", isbn="123456789", status="available", available_copies=5)
+        db.add(test_book)
+        db.commit()  # Сохраняем книгу в базе данных
 
-    # Проверяем, что запись добавилась
-    print(f"Borrow record created: ID={borrow.id}, Borrow Date={borrow.borrow_date}, Return Date={borrow.return_date}")
+        # 3. Добавляем запись о заимствовании
+        borrow_date = date.today()
+        return_date = borrow_date  # или позже
+        borrow = create_borrow(db, user_id=test_user.id, book_id=test_book.id, borrow_date=borrow_date, return_date=return_date)
 
-    db.close()  # Закрываем сессию после выполнения
+        # 4. Проверка
+        assert borrow.id is not None
+        assert borrow.user_id == test_user.id
+        assert borrow.book_id == test_book.id
 
-# Запуск теста
-test_create_borrow()
+    finally:
+        # 5. Очистка
+        db.delete(borrow)
+        db.delete(test_book)
+        db.delete(test_user)
+        db.commit()
+        db.close()

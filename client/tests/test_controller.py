@@ -1,5 +1,16 @@
 import pytest
 from client.controller import LibraryController
+import sys
+import os
+
+# Добавляем корневую папку проекта в sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
+from client.controller import LibraryController
+
+def test_dummy():
+    assert True  # просто заглушка
+
 
 def test_borrow_book_no_copies(monkeypatch, capsys):
     # Имитируем ответ сервера: книга с 0 доступными копиями
