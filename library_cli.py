@@ -59,7 +59,7 @@ def borrow_book(db, user_id):
     print("\nДоступные книги:")
     books = db.query(Book).all()
     for book in books:
-        print(f"ID: {book.id}, Название: {book.title}, Автор: {book.author}")
+        print(f"ID: {book.id}, Название: {book.title}, Автор: {book.author}, Доступно: {book.available_copies}")
 
     book_id = int(input("\nВведите ID книги, которую хотите взять: "))
     borrow_date = datetime.now().date()
@@ -67,30 +67,47 @@ def borrow_book(db, user_id):
     # Проверка на наличие книги
     book = db.query(Book).filter(Book.id == book_id).first()
     if book:
-        borrow_entry = Borrow(user_id=user_id, book_id=book_id, borrow_date=borrow_date)
-        db.add(borrow_entry)
-        db.commit()
-        db.refresh(borrow_entry)
-        print(f"Вы успешно взяли книгу: {book.title}")
+        if book.available_copies > 0:  # Если есть доступные экземпляры
+            borrow_entry = Borrow(user_id=user_id, book_id=book_id, borrow_date=borrow_date)
+            db.add(borrow_entry)
+            
+            # Уменьшаем количество доступных экземпляров книги
+            book.available_copies -= 1
+            db.commit()
+            db.refresh(borrow_entry)
+            print(f"Вы успешно взяли книгу: {book.title}")
+        else:
+            print(f"Книга {book.title} в данный момент недоступна для заимствования.")
     else:
         print("Такой книги не существует.")
+
 
 # Функция для возврата книги
 def return_book(db, user_id):
     print("\nВаши заимствованные книги:")
     borrows = db.query(Borrow).filter(Borrow.user_id == user_id).all()
+
+    if not borrows:
+        print("У вас нет заимствованных книг.")
+        return
+
     for borrow in borrows:
         book = db.query(Book).filter(Book.id == borrow.book_id).first()
-        print(f"ID: {borrow.id}, Название книги: {book.title}")
+        print(f"ID заимствования: {borrow.id}, Название книги: {book.title}")
 
-    borrow_id = int(input("\nВведите ID книги для возврата: "))
-    borrow_entry = db.query(Borrow).filter(Borrow.id == borrow_id).first()
+    borrow_id = int(input("\nВведите ID заимствования для возврата: "))
+    borrow_entry = db.query(Borrow).filter(Borrow.id == borrow_id, Borrow.user_id == user_id).first()
+
     if borrow_entry:
+        book = db.query(Book).filter(Book.id == borrow_entry.book_id).first()
+        if book:
+            book.available_copies += 1  # Увеличиваем доступные копии
         db.delete(borrow_entry)
         db.commit()
         print("Вы успешно вернули книгу!")
     else:
         print("Вы не заимствовали книгу с таким ID.")
+
 
 # Функция для просмотра истории заимствований
 def view_borrow_history(db, user_id):
