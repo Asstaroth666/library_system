@@ -3,19 +3,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from server.models import Base, User, Book, Borrow
 
-# Создаем подключение к базе данных
-DATABASE_URL = "postgresql://postgres:1234@localhost/library"  # Убедись, что здесь правильный URL подключения
 
-# Создание движка базы данных (engine)
+DATABASE_URL = "postgresql://postgres:1234@localhost/library"  
+
+
 engine = create_engine(DATABASE_URL)
 
-# Создание фабрики сессий
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Создаем таблицы в базе данных
+
 Base.metadata.create_all(bind=engine)
 
-# Функция для получения сессии
+
 def get_db():
     db = SessionLocal()
     try:
@@ -23,7 +23,7 @@ def get_db():
     finally:
         db.close()
 
-# Функция для регистрации нового пользователя
+
 def register_user(db):
     print("Регистрация нового пользователя:")
     username = input("Введите ваше имя: ")
@@ -37,9 +37,9 @@ def register_user(db):
     print(f"Пользователь {username} успешно зарегистрирован! Ваш ID: {new_user.id}")
     return new_user.id
 
-# Функция для входа пользователя
+
 def login_user(db):
-    attempts = 0  # Счетчик неудачных попыток
+    attempts = 0  
     while attempts < 3:
         user_id = int(input("Введите ваш ID: "))
         user = db.query(User).filter(User.id == user_id).first()
